@@ -1,5 +1,8 @@
 # Lead Enrichment Workflow
 
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/aminebakhti/)
+[![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?style=for-the-badge&logo=github)](https://github.com/iwkmstiic)
+
 ## Overview
 
 An AI-powered lead enrichment workflow built with n8n that analyzes incoming sales leads, generates business insights, assigns lead scores, and prepares personalized outreach recommendations.
