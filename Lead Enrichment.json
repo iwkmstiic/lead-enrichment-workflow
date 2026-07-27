@@ -1,0 +1,275 @@
+{
+  "name": "Lead Enrichment",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "790bb7e2-1800-442b-b603-7407fcd6f1fa",
+      "name": "Run Test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fullName",
+              "name": "Full Name",
+              "type": "string",
+              "value": "Jane Doe"
+            },
+            {
+              "id": "companyName",
+              "name": "Company Name",
+              "type": "string",
+              "value": "Acme Analytics"
+            },
+            {
+              "id": "email",
+              "name": "Email",
+              "type": "string",
+              "value": "jane.doe@acmeanalytics.com"
+            },
+            {
+              "id": "jobTitle",
+              "name": "Job Title",
+              "type": "string",
+              "value": "VP of Marketing"
+            },
+            {
+              "id": "website",
+              "name": "Website",
+              "type": "string",
+              "value": "https://acmeanalytics.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6c3f3844-299c-4375-b882-e18c9c04b8d2",
+      "name": "Lead Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a B2B sales research assistant. Analyze the lead below and enrich it.\n\nLead information:\n- Full Name: {{ $json[\"Full Name\"] }}\n- Company Name: {{ $json[\"Company Name\"] }}\n- Email: {{ $json.Email }}\n- Job Title: {{ $json[\"Job Title\"] }}\n- Website: {{ $json.Website }}\n\nInstructions:\n- Company Summary: 2-3 sentences describing what the company does.\n- Industry: the primary industry.\n- Company Size: one of Small, Medium, Large, or Unknown.\n- Qualification: likelihood of being a good B2B customer — one of High, Medium, or Low.\n- Pain Points: a list of likely business pain points.\n- Outreach Angle: a personalized first outreach angle for this specific lead.\n- Lead Score: an integer from 0 to 100.\n- Reasoning: a short justification for the score.\nBase your analysis only on the information provided and reasonable inference. If unsure about size, use \"Unknown\".",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "id": "cb5c01ed-4ffd-4d6b-bc59-cd5f8a7308d4",
+      "name": "Enrich Lead (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "434d953f-927d-4843-8874-21686b03f46e",
+      "name": "Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        336
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\"company_summary\":\"A 2-3 sentence summary of what the company does.\",\"industry\":\"Primary industry of the company\",\"company_size\":\"Small\",\"qualification\":\"High\",\"pain_points\":[\"Pain point one\",\"Pain point two\"],\"outreach_angle\":\"A personalized first outreach angle for this lead\",\"lead_score\":85,\"reasoning\":\"Short reasoning for the score\"}"
+      },
+      "id": "bb18f773-cf8e-4fbe-9a7a-3242763e2be2",
+      "name": "Enrichment Schema",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wH8VorIvRDBc71B9g6A3K02f1Ql3irHFBAX3q_dLFy4",
+          "mode": "list",
+          "cachedResultName": "LeadEnrichment",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wH8VorIvRDBc71B9g6A3K02f1Ql3irHFBAX3q_dLFy4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "output": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "output"
+          ],
+          "schema": [
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cab8e69c-e27c-4f43-814b-06f2f89f5ac7",
+      "name": "Append to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "EV85hIo6GEzcLqCr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "amine27012006@gmail.com",
+        "subject": "=New Lead Qualified - {{ $(\"Lead Input\").item.json[\"Company Name\"] }}",
+        "message": "=<h2>Lead Qualified</h2>\n<p><strong>Name:</strong> {{ $(\"Lead Input\").item.json[\"Full Name\"] }}</p>\n<p><strong>Company:</strong> {{ $(\"Lead Input\").item.json[\"Company Name\"] }}</p>\n<p><strong>Lead Score:</strong> {{ $json.output.lead_score }} ({{ $json.output.qualification }})</p>\n<p><strong>Industry:</strong> {{ $json.output.industry }}</p>\n<p><strong>Pain Points:</strong><br>{{ $json.output.pain_points.join(\"<br>\") }}</p>\n<p><strong>Suggested Outreach:</strong><br>{{ $json.output.outreach_angle }}</p>\n<p><strong>Reasoning:</strong><br>{{ $json.output.reasoning }}</p>",
+        "options": {}
+      },
+      "id": "2a830506-ca6f-413b-b9b8-5582e2e89be0",
+      "name": "Notify Me",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        112
+      ],
+      "webhookId": "b6da1981-92f8-49a1-bab9-eff64bbae8f0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bQnNgNT2RpWtHZYz",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Test": {
+      "main": [
+        [
+          {
+            "node": "Lead Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Input": {
+      "main": [
+        [
+          {
+            "node": "Enrich Lead (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Lead (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Enrich Lead (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrichment Schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Enrich Lead (Gemini)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Notify Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7b06ca05-4efd-4463-bce5-966a0cf328c3",
+  "meta": {
+    "instanceId": "e25cbc21fd004de71799eb9a43a8ed3e83e15b137f2cb286c0f05ea77fc84074"
+  },
+  "nodeGroups": [],
+  "id": "aPGkeUFE3umd6wll",
+  "tags": []
+}
